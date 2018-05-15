@@ -1,2 +1,2 @@
 git is a distributed version control system.
-create a new branch is quick AN simple
+create a new branch is quick AND simple
