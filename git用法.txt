@@ -1,0 +1,127 @@
+修改(创建)文件-->工作区（git add）-->暂存区(commit)-->版本库
+
+安装git
+	ubuntu:apt-get install git
+
+创建版本库
+	仓库需要创建文件夹，可以不为空
+	mkdir /tmp/gitdatabase
+	cd /tmp/gitdatabase#进入文件夹
+	git init 初始化仓库,当前目录下多了一个.git的目录，这个目录是Git来跟踪管理版本库的.
+	mkdir readme.txt#创建一个文件
+	
+git工作区、暂存区、版本库对比使用	
+	git add readme.txt #把文件添加到暂存区,后面可以跟多个文件
+	git commit -m "wrote a readme file"#提交到版本库
+	git status #查看当前仓库状态
+	git diff readme.txt #查看difference,工作区与暂存区的对比,显示的格式是Unix通用的diff格式
+		--cached #是暂存区与分支的对比
+		HEAD --readme.txt #是工作区与分支（版本库）的对比
+	git log #查看历史记录，当你回退到某个版本，此版本之后的记录，就自动抹去了
+		--pretty=oneline #在一行简单显示信息
+	git reset #命令既可以回退版本，也可以把暂存区的修改回退到工作区。
+	git reset --hard HEAD^ #回退到上一版本
+		--hard HEAD^^ #回退上上版本
+	git reflog #记录每一次的命令
+	第一次修改 -> git add -> 第二次修改 -> git commit#会导致第二次修改没有被提交
+	第一次修改 -> git add -> 第二次修改 ->git add -> git commit#正常提交
+	git diff HEAD -- readme.txt #查看工作区和版本库里最新版本的区别，显示的格式是Unix通用的diff格式
+	git checkout -- readme.txt 把工作区的修改全部撤销：
+		1.自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
+			step1：git checkout -- readme.txt
+		2.已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+			step1：git reset HEAD readme.txt #暂存区的修改回退到工作区
+			step2：git checkout -- readme.txt
+	git rm test.txt #删除工作区的文件并且将删除的动作提交到暂存区
+	git checkout -- test.txt#，还原文件，用版本库里的版本替换工作区的版本
+	
+上传到远程Github
+	1. ssh-keygen -t rsa -C "youremail@example.com" #在本地创建公钥
+	2. cp 公钥到Github上
+	3. git remote add o git@github.com:pythonohtyp/github.git #连接远程库#o->origin 出错？？
+	4. git push -u o master #推送文件到远程库
+	5. git remote -v #查看连接的远程库
+	6. git remote re origin #删除连接的远程库
+从远程库克隆
+	1. git clone git@github.com:pythonohtyp/pyhton_learn.git  #从远程克隆到当前文件夹内，（不要在别的工作区执行）
+	2. 当前文件会生成一个同名文件夹
+分支管理
+	创建与合并分支
+		1. git checkout -b dev  #创建dev分支并切换到dev
+			==  git branch dev  #创建
+				git chechout dev#切换
+		2. git branch  #查看所有分支，当前分支前有*
+		3. git merge dev #合并dev分支到当前分支 ，此时当前分支为master
+		4. git branch -d dev #删除dev分支
+	
+解决冲突
+	当两个分支同时在编辑不同内容并且都提交后，两分支在合并时会出现冲突，
+	查看要提交的文件会出现“<<<<<<<，=======，>>>>>>>标记”，把这些内容删除后，补充正确的内容再提交，
+	最后删除不用的分支。
+分支管理策略
+	默认方式是用Fast forward 模式，删除分支后，会丢掉分支信息
+	如果禁用Fast forward（--no-ff），git会在merge时生成新的commit，从分支历史可以看到分支信息。
+							HEAD	
+							 \	
+							  \
+							 master
+							   |
+	O---------O---------O------O
+						 \    /
+						  \  /
+						   O(dev)
+	分支策略，master分支应该最稳定，仅用来做版本发布；
+	干活的话在dev上，版本发布时合并到master；
+BUG分支
+	当有紧急BUG需要修复时，保存现在正在做的事，然后创建临时分支，修复BUG，合并（merge）后，再回原来分支工作
+	git stash #保存工作现场
+	git stash list #查看工作现场列表
+	恢复现场：
+		1. git stash apply  #stash内容不删除，需要git stash drop 删除
+		2. git stash pop #恢复的同时把stash内容删除
+Feature分支
+	开发一个新feature，最好新建一个分支
+	git checkout -b feature-vulcan
+	vi vulcan.py
+	git commit -m "add feature vulcan"
+	git checkout dev
+	新功能取消
+	git branch -d feature-vulcan #销毁失败。因为 feature-vulcan 没有被合并，所以强制销毁
+	git branch -D feature-vulcan #强制销毁
+多人协作
+	推送分支
+		git push origin master
+		git push origin dev 
+		并不是一定要把本地分支往远程推送，那么，哪些分支需要推送，哪些不需要呢？
+		master分支是主分支，因此要时刻与远程同步；
+		dev分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+		bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+		feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+	抓取分支
+		git clone git@github.com:michaelliao/learngit.git #另外一个人远程克隆下来，只能看到master分支
+		git branch
+		git checkout -b dev origin/dev #创建远程的dev到本地 
+		在dev上开发，编辑同一文件，上传
+		你也作出修改（push）上传，如果冲突
+		需要先git pull 下拉最新版本，如果git pull提示“no tracking information”，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to=branch-name origin/branch-name
+		合并有冲突，解决冲突，再本地提交
+标签(tag)管理
+	git checkout master #进入master分支
+	git tag v1.0 #打新标签
+	git tag #查看所有标签
+	为之前的commit打标签
+		git log --pretty=oneline --abbrev=commit #找到 commit id
+		git tag v0.9 commit-id
+	  或git tag -a v0.1 -m "version 0.1 released" commit-id #带有说明
+		git tag -d v0.1 #删除标签
+		git push origin :refs/tags/<tagname> #删除一个远程标签
+		git push origin v1.0 #推送标签到远程
+		git push origin --tags #推送所有尚未推送的标签
+配置别名
+	git config --global alias.st status
+	git config --global alias.co chechout
+	git config --global alias.ci commit
+	git config --global alias.br branch
+	
+		
+		
